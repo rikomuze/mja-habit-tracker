@@ -133,6 +133,41 @@
       padding: 24px;
     }
 
+    .browser-note {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+      border: 1px solid rgba(183,149,85,0.28);
+      border-radius: 22px;
+      padding: 16px 18px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.82), rgba(234,223,202,0.36)),
+        rgba(255,253,248,0.8);
+      box-shadow: 0 10px 24px rgba(64,48,80,0.06);
+    }
+
+    .browser-note strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+      letter-spacing: -0.02em;
+    }
+
+    .browser-note p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.7;
+    }
+
+    .browser-note button {
+      padding: 10px 13px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
     .community {
       margin-top: 22px;
       position: relative;
@@ -614,6 +649,14 @@
       line-height: 1.15;
     }
 
+    .report-date {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
     .report-percent {
       min-width: 72px;
       height: 72px;
@@ -898,7 +941,7 @@
     }
 
     @media (max-width: 900px) {
-      .hero-grid, .main, .community, .share-builder { grid-template-columns: 1fr; }
+      .hero-grid, .main, .community, .share-builder, .browser-note { grid-template-columns: 1fr; }
       .hero { padding: 26px; }
       .countdown-box { grid-template-columns: 1fr; }
       .community-badge { justify-self: start; }
@@ -946,12 +989,21 @@
       </div>
     </header>
 
+    <section class="browser-note">
+      <div>
+        <strong>Xアプリ内ブラウザより、Safari / Chromeで開くのがおすすめ</strong>
+        <p>チェック記録や画像保存を安定させたい場合は、外部ブラウザで開いて使ってください。</p>
+      </div>
+      <button class="secondary" id="copyUrl">URLをコピー</button>
+    </section>
+
     <section class="panel community">
       <div>
         <h2>今日もMUZEが積み上げ中</h2>
         <p>
-          1人の100回も強い。だけど、100人の1回はもっと強い。<br>
-          あなたの今日の1回が、MAZZELに届く大きな流れの一部になる。
+          今日のぶん、ちょっと積んどく？<br>
+          1個でもやったら、ちゃんと前進。<br>
+          毎日続いたら、大きな前進。
         </p>
       </div>
       <div class="community-badge">
@@ -1011,7 +1063,7 @@
           <h2>Daily Report Card</h2>
         </div>
         <p>
-          今日できたことをカードにして保存できます。Xやストーリーズに載せるときは、完璧アピールではなく「今日も一緒に積み上げたよ」の温度感で。
+          今日の戦果をカードにして保存できます。できた日はスクショして、ゆるっと共有用にも。
         </p>
         <div class="share">
           <button class="primary" id="copyReport">報告文をコピー</button>
@@ -1024,13 +1076,14 @@
           <div>
             <small>MJA HABIT REPORT</small>
             <h3>今日の積み上げ</h3>
+            <p class="report-date" id="reportDate"></p>
           </div>
           <div class="report-percent" id="reportPercent">0%</div>
         </div>
         <div class="report-title" id="reportTitle">今日も一歩MUZE</div>
         <ul class="report-list" id="reportList"></ul>
         <p class="report-message" id="reportMessage">
-          完璧じゃなくて大丈夫。今日できる1つを、MAZZELへの1票に。
+          1個できたら、それはもう今日の積み上げ。
         </p>
       </div>
     </section>
@@ -1050,16 +1103,6 @@
       <div class="calendar" id="calendar"></div>
     </section>
 
-    <section class="panel kind-note">
-      <div class="kind-mark">♡</div>
-      <div>
-        <h2>無理なく、でも毎日少しずつ。</h2>
-        <p>
-          できる日に、できる分だけで大丈夫。全部できない日も、1つできたらちゃんと前進。<br>
-          みんなの1回が集まって、MAZZELの大きな力になる。
-        </p>
-      </div>
-    </section>
 
     <section class="panel memo" style="margin-top:22px;">
       <div class="section-title">
@@ -1189,14 +1232,14 @@
     }
 
     function getTitle(pct, streak) {
-      if (streak >= 14) return '継続の天才MUZE';
-      if (streak >= 7) return '生活にMJAがいる';
-      if (streak >= 3) return '習慣化はじまってる';
+      if (streak >= 14) return '継続の鬼MUZE';
+      if (streak >= 7) return 'もはや日課MUZE';
+      if (streak >= 3) return '生活に入り込んできた';
       if (pct === 100) return 'MJA戦闘民族MUZE';
-      if (pct >= 75) return 'かなりえらいMUZE';
-      if (pct >= 50) return '積み上げMUZE';
-      if (pct >= 25) return '今日も一歩MUZE';
-      return 'これから積み上げMUZE';
+      if (pct >= 75) return 'ほぼ仕上がりMUZE';
+      if (pct >= 50) return 'じわじわ積んでるMUZE';
+      if (pct >= 25) return 'まず1個えらいMUZE';
+      return 'まだ助走MUZE';
     }
 
     function renderHeader() {
@@ -1305,6 +1348,7 @@
 
     function renderReportCard() {
       const { tasks, dayData, pct, title } = getTodayStats();
+      $('#reportDate').textContent = `${todayParts.yyyy}.${todayParts.mm}.${todayParts.dd}`;
       $('#reportPercent').textContent = `${pct}%`;
       $('#reportTitle').textContent = title;
       $('#reportList').innerHTML = tasks.map(task => {
@@ -1312,8 +1356,8 @@
         return `<li><span>${task.shortTitle}</span><span>${done ? '✓' : '—'}</span></li>`;
       }).join('');
       $('#reportMessage').textContent = pct === 100
-        ? '今日もMAZZELに積み上げ完了。みんなの1回が、大きな力になる。'
-        : '完璧じゃなくて大丈夫。今日できる1つを、MAZZELへの1票に。';
+        ? '本日フル達成。これはもうMJA戦闘民族MUZE。'
+        : '1個できたら、それはもう今日の積み上げ。';
     }
 
     function renderCalendar() {
@@ -1351,7 +1395,7 @@
         `達成度：${pct}%`,
         `今日の称号：${title}`,
         '',
-        '完璧じゃなくて大丈夫。今日できる1つを、MAZZELへの1票に。',
+        '1個できたら、それはもう今日の積み上げ。',
         '',
         '#MAZZEL #MUZE #SpotifyでMAJ投票 #LINEMUSICでMAJ推し応援 #推しリク'
       ].join(lineBreak);
@@ -1394,6 +1438,10 @@
       ctx.letterSpacing = '3px';
       ctx.fillText('MJA HABIT REPORT', 120, 170);
 
+      ctx.fillStyle = '#716677';
+      ctx.font = '700 28px sans-serif';
+      ctx.fillText(`${todayParts.yyyy}.${todayParts.mm}.${todayParts.dd}`, 760, 170);
+
       ctx.fillStyle = '#28212b';
       ctx.font = '900 78px sans-serif';
       ctx.fillText('今日の積み上げ', 120, 280);
@@ -1432,8 +1480,8 @@
       ctx.fillStyle = '#716677';
       ctx.font = '400 30px sans-serif';
       wrapText(ctx, pct === 100
-        ? '今日もMAZZELに積み上げ完了。みんなの1回が、大きな力になる。'
-        : '完璧じゃなくて大丈夫。今日できる1つを、MAZZELへの1票に。', 120, 1130, 820, 46);
+        ? '本日フル達成。これはもうMJA戦闘民族MUZE。'
+        : '1個できたら、それはもう今日の積み上げ。', 120, 1130, 820, 46);
 
       ctx.fillStyle = 'rgba(40,33,43,0.07)';
       ctx.font = '900 74px sans-serif';
@@ -1492,6 +1540,16 @@
       });
 
       $('#saveImage').addEventListener('click', saveReportImage);
+
+      $('#copyUrl').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(location.href);
+          $('#copyUrl').textContent = 'コピーしました';
+          setTimeout(() => $('#copyUrl').textContent = 'URLをコピー', 1400);
+        } catch (error) {
+          alert(location.href);
+        }
+      });
     }
 
     function renderAllDynamic() {
