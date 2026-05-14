@@ -225,103 +225,212 @@
 
     .task-list {
       display: grid;
-      gap: 12px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
     }
 
     .task {
+      position: relative;
+      overflow: hidden;
+      min-height: 190px;
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-rows: auto 1fr auto;
       gap: 14px;
-      align-items: center;
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: rgba(255,255,255,0.56);
-      transition: transform .18s ease, border-color .18s ease, background .18s ease;
+      padding: 18px;
+      border: 1px solid rgba(183,149,85,0.26);
+      border-radius: 24px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.76), rgba(255,250,240,0.56)),
+        rgba(255,255,255,0.54);
+      transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    }
+
+    .task::before {
+      content: "";
+      position: absolute;
+      inset: 10px;
+      border: 1px solid rgba(183,149,85,0.18);
+      border-radius: 18px;
+      pointer-events: none;
+    }
+
+    .task::after {
+      content: "";
+      position: absolute;
+      right: 18px;
+      bottom: 14px;
+      width: 72px;
+      height: 72px;
+      border-radius: 999px;
+      border: 1px solid rgba(118,96,154,0.07);
+      background: radial-gradient(circle, rgba(118,96,154,0.05), transparent 68%);
+      pointer-events: none;
     }
 
     .task:hover {
-      transform: translateY(-1px);
-      border-color: rgba(118, 96, 154, 0.34);
-      background: rgba(255,255,255,0.82);
+      transform: translateY(-2px);
+      border-color: rgba(118, 96, 154, 0.36);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.9), rgba(250,244,255,0.66)),
+        rgba(255,255,255,0.76);
+      box-shadow: 0 14px 26px rgba(64,48,80,0.08);
     }
 
     .task input {
       appearance: none;
-      width: 26px;
-      height: 26px;
-      border-radius: 9px;
-      border: 1.5px solid rgba(118, 96, 154, 0.5);
-      display: grid;
-      place-content: center;
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
       cursor: pointer;
-      background: #fff;
+      background: transparent;
+      z-index: 3;
     }
 
-    .task input::before {
-      content: "";
-      width: 13px;
-      height: 13px;
-      transform: scale(0);
-      border-radius: 5px;
-      background: linear-gradient(135deg, var(--lavender-deep), var(--gold));
-      transition: transform .16s ease;
+    .task-head {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
     }
 
-    .task input:checked::before { transform: scale(1); }
+    .task-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(118,96,154,0.22);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(255,255,255,0.58);
+      color: var(--lavender-deep);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
 
-    .task.done {
-      border-color: rgba(183,149,85,0.34);
-      background: linear-gradient(90deg, rgba(234,223,202,0.42), rgba(255,255,255,0.7));
+    .task-seal {
+      min-width: 58px;
+      height: 58px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(118,96,154,0.20);
+      color: rgba(118,96,154,0.38);
+      background: rgba(255,255,255,0.72);
+      font-size: 24px;
+      font-weight: 900;
+      transform: rotate(-8deg);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    .task-copy {
+      position: relative;
+      z-index: 2;
+      align-self: end;
     }
 
     .task-copy strong {
       display: block;
-      font-size: 15px;
-      margin-bottom: 5px;
+      font-size: 17px;
+      margin-bottom: 8px;
+      letter-spacing: -0.03em;
     }
 
     .task-copy p {
       margin: 0;
       color: var(--muted);
       font-size: 12.5px;
-      line-height: 1.65;
+      line-height: 1.7;
     }
 
     .task a {
+      position: relative;
+      z-index: 4;
+      justify-self: start;
       text-decoration: none;
       font-size: 12px;
       color: var(--lavender-deep);
       border: 1px solid rgba(118, 96, 154, 0.28);
-      padding: 8px 10px;
+      padding: 9px 12px;
       border-radius: 999px;
       white-space: nowrap;
-      background: rgba(255,255,255,0.72);
+      background: rgba(255,255,255,0.74);
+    }
+
+    .task.done {
+      border-color: rgba(183,149,85,0.52);
+      background:
+        radial-gradient(circle at 15% 12%, rgba(183,149,85,0.18), transparent 32%),
+        linear-gradient(135deg, rgba(234,223,202,0.58), rgba(255,255,255,0.78));
+    }
+
+    .task.done .task-label {
+      color: #fff;
+      background: linear-gradient(135deg, var(--lavender-deep), var(--gold));
+      border-color: rgba(255,255,255,0.42);
+    }
+
+    .task.done .task-seal {
+      color: #fff;
+      border-color: rgba(255,255,255,0.34);
+      background: linear-gradient(135deg, var(--lavender-deep), var(--gold));
+      box-shadow:
+        0 10px 22px rgba(118,96,154,0.16),
+        inset 0 1px 0 rgba(255,255,255,0.35);
     }
 
     .progress-card {
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-card::before {
+      content: "EMBLEM";
+      position: absolute;
+      right: -10px;
+      top: 14px;
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: -0.08em;
+      color: rgba(118,96,154,0.06);
+      pointer-events: none;
     }
 
     .ring {
-      width: 176px;
-      height: 176px;
+      width: 190px;
+      height: 190px;
       margin: 10px auto 18px;
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: conic-gradient(var(--lavender-deep) calc(var(--pct) * 1%), rgba(118,96,154,0.12) 0);
+      background:
+        radial-gradient(circle, rgba(255,255,255,0.88) 0 52%, transparent 53%),
+        conic-gradient(var(--gold) calc(var(--pct) * 1%), rgba(118,96,154,0.13) 0);
       position: relative;
+      box-shadow: 0 18px 30px rgba(64,48,80,0.10);
     }
 
     .ring::before {
       content: "";
       position: absolute;
-      width: 132px;
-      height: 132px;
+      width: 148px;
+      height: 148px;
       border-radius: 50%;
-      background: var(--paper);
-      box-shadow: inset 0 0 0 1px rgba(40,33,43,0.07);
+      background:
+        linear-gradient(145deg, rgba(255,253,248,0.98), rgba(246,238,249,0.92));
+      box-shadow: inset 0 0 0 1px rgba(183,149,85,0.28);
+    }
+
+    .ring::after {
+      content: "✦";
+      position: absolute;
+      top: 18px;
+      color: rgba(183,149,85,0.78);
+      font-size: 18px;
     }
 
     .ring-text {
@@ -331,36 +440,53 @@
 
     .ring-text strong {
       display: block;
-      font-size: 42px;
+      font-size: 44px;
       letter-spacing: -0.06em;
     }
 
     .ring-text span {
       color: var(--muted);
-      font-size: 12px;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
     }
 
     .title-badge {
+      position: relative;
       margin: 0 auto 16px;
       width: 100%;
-      border: 1px solid rgba(183,149,85,0.32);
+      border: 1px solid rgba(183,149,85,0.38);
       border-radius: 20px;
-      padding: 14px 12px;
-      background: linear-gradient(135deg, rgba(234,223,202,0.45), rgba(187,167,217,0.18));
+      padding: 16px 12px;
+      background:
+        linear-gradient(135deg, rgba(234,223,202,0.58), rgba(187,167,217,0.20));
     }
+
+    .title-badge::before,
+    .title-badge::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 28px;
+      height: 1px;
+      background: rgba(183,149,85,0.45);
+    }
+
+    .title-badge::before { left: 12px; }
+    .title-badge::after { right: 12px; }
 
     .title-badge span {
       display: block;
       color: var(--muted);
       font-size: 11px;
-      letter-spacing: 0.12em;
-      font-weight: 700;
+      letter-spacing: 0.14em;
+      font-weight: 800;
       margin-bottom: 6px;
     }
 
     .title-badge strong {
       display: block;
-      font-size: 18px;
+      font-size: 19px;
       letter-spacing: -0.03em;
     }
 
@@ -574,18 +700,32 @@
     }
 
     .day {
-      min-height: 66px;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.52);
+      min-height: 72px;
+      border-radius: 18px;
+      border: 1px solid rgba(183,149,85,0.22);
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.62), rgba(255,250,241,0.45));
       padding: 9px;
       font-size: 12px;
       color: var(--muted);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .day::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border: 1px solid rgba(118,96,154,0.08);
+      border-radius: 13px;
+      pointer-events: none;
     }
 
     .day.complete {
-      background: linear-gradient(145deg, rgba(187,167,217,0.26), rgba(234,223,202,0.54));
-      border-color: rgba(183,149,85,0.36);
+      background:
+        radial-gradient(circle at 50% 22%, rgba(183,149,85,0.22), transparent 34%),
+        linear-gradient(145deg, rgba(187,167,217,0.23), rgba(234,223,202,0.62));
+      border-color: rgba(183,149,85,0.44);
       color: var(--ink);
     }
 
@@ -596,25 +736,97 @@
 
     .day b {
       display: block;
+      position: relative;
+      z-index: 1;
       font-size: 15px;
       color: var(--ink);
-      margin-bottom: 10px;
+      margin-bottom: 11px;
     }
 
     .dots {
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
+      gap: 6px;
+      align-items: center;
     }
 
     .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: rgba(118,96,154,0.22);
+      position: relative;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, rgba(118,96,154,0.10), rgba(183,149,85,0.08));
+      border: 1px solid rgba(118,96,154,0.10);
+      box-shadow:
+        inset 0 1px 1px rgba(255,255,255,0.62),
+        inset 0 -1px 2px rgba(40,33,43,0.06);
     }
 
-    .dot.on { background: var(--lavender-deep); }
+    .dot::before {
+      content: "";
+      position: absolute;
+      left: 2px;
+      top: 2px;
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.62);
+    }
+
+    .dot::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: 50%;
+      border-top: 1px solid rgba(255,255,255,0.36);
+      border-left: 1px solid rgba(255,255,255,0.24);
+      opacity: 0.9;
+    }
+
+    .dot.on {
+      background:
+        radial-gradient(circle at 28% 24%, rgba(255,255,255,1) 0 10%, rgba(255,255,255,0.58) 11%, transparent 30%),
+        radial-gradient(circle at 38% 36%, #ead8ff 0%, #a875e8 34%, #6f4fa0 64%, #b79555 100%);
+      border-color: rgba(255,255,255,0.86);
+      box-shadow:
+        0 4px 12px rgba(118,96,154,0.34),
+        0 0 0 1px rgba(183,149,85,0.18),
+        inset 0 1px 1px rgba(255,255,255,0.82),
+        inset 0 -2px 5px rgba(40,33,43,0.22);
+    }
+
+    .day.complete .dot.on {
+      width: 15px;
+      height: 15px;
+      background:
+        radial-gradient(circle at 28% 22%, rgba(255,255,255,1) 0 11%, rgba(255,255,255,0.62) 12%, transparent 28%),
+        radial-gradient(circle at 52% 72%, rgba(83,46,127,0.42) 0%, transparent 36%),
+        radial-gradient(circle at 42% 34%, #fff1b8 0%, #e7bd4f 30%, #b47b26 56%, #5f3c91 100%);
+      border-color: rgba(255,255,255,0.94);
+      box-shadow:
+        0 6px 16px rgba(183,149,85,0.42),
+        0 0 0 3px rgba(183,149,85,0.18),
+        0 0 18px rgba(231,189,79,0.32),
+        inset 0 1px 1px rgba(255,255,255,0.92),
+        inset 0 -3px 6px rgba(40,33,43,0.28);
+    }
+
+    .day.complete .dots::after {
+      content: "FULL";
+      margin-left: 2px;
+      align-self: center;
+      border: 1px solid rgba(183,149,85,0.62);
+      border-radius: 999px;
+      padding: 2px 6px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.82), rgba(255,238,186,0.76));
+      color: #8f6425;
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      box-shadow: 0 2px 8px rgba(183,149,85,0.16);
+    }
 
     .note {
       margin-top: 16px;
@@ -697,11 +909,12 @@
       .hero { border-radius: 26px; }
       .hero::before { inset: 12px; border-radius: 20px; }
       .panel { padding: 18px; }
-      .task { grid-template-columns: auto 1fr; }
-      .task a { grid-column: 2; justify-self: start; }
+      .task-list { grid-template-columns: 1fr; }
+      .task { min-height: 176px; }
+      .task a { justify-self: start; }
       .calendar { gap: 5px; }
       .day { min-height: 54px; border-radius: 12px; padding: 7px; }
-      .dot { width: 6px; height: 6px; }
+      .dot { width: 9px; height: 9px; }
       .kind-note { grid-template-columns: 1fr; }
       .report-card { padding: 22px; }
       .report-top h3 { font-size: 23px; }
@@ -767,7 +980,7 @@
 
       <aside class="panel progress-card">
         <div class="section-title">
-          <h2>今日の達成度</h2>
+          <h2>Today’s Emblem</h2>
         </div>
         <div class="ring" id="ring" style="--pct:0">
           <div class="ring-text">
@@ -795,7 +1008,7 @@
     <section class="panel share-builder">
       <div class="share-copy">
         <div class="section-title">
-          <h2>完了報告カード</h2>
+          <h2>Daily Report Card</h2>
         </div>
         <p>
           今日できたことをカードにして保存できます。Xやストーリーズに載せるときは、完璧アピールではなく「今日も一緒に積み上げたよ」の温度感で。
@@ -824,14 +1037,14 @@
 
     <section class="panel" style="margin-top:22px;">
       <div class="section-title">
-        <h2>最初だけやる設定</h2>
+        <h2>Preparation</h2>
       </div>
       <div class="setup-list" id="setupList"></div>
     </section>
 
     <section class="panel" style="margin-top:22px;">
       <div class="section-title">
-        <h2>5月の見える化</h2>
+        <h2>Monthly Archive</h2>
         <div class="today-date">丸が多いほど、その日にできた行動が多い</div>
       </div>
       <div class="calendar" id="calendar"></div>
@@ -850,7 +1063,7 @@
 
     <section class="panel memo" style="margin-top:22px;">
       <div class="section-title">
-        <h2>メモ</h2>
+        <h2>Notes</h2>
         <div class="today-date">週次ランキング・気づき・声かけ案など</div>
       </div>
       <textarea id="memo" placeholder="例：今週はYahoo検索を忘れない / LINE MUSIC再生の導線を固定ポストに入れる など"></textarea>
@@ -872,6 +1085,7 @@
     const TASKS = [
       {
         id: 'spotify',
+        label: 'VOTE',
         title: 'Spotifyで「Only You」に投票',
         shortTitle: 'Spotify投票',
         text: 'ベスト・オブ・リスナーズチョイス対策。5月20日までの最優先ハビット。',
@@ -881,14 +1095,16 @@
       },
       {
         id: 'lineMusic',
+        label: 'PLAY',
         title: 'LINE MUSICでMAZZELを再生',
         shortTitle: 'LINE MUSIC再生',
         text: 'ファンダム特別賞対策。集計期間中の「聴く」行動を毎日の習慣に。',
-        linkText: 'MAZZELを再生する',
-href: 'https://music.line.me/webapp/artist/mi000000001d0ab520/tracks'
+        linkText: 'LINE MUSIC',
+        href: 'https://music.line.me/search?query=MAZZEL'
       },
       {
         id: 'yahooSearch',
+        label: 'SEARCH',
         title: 'Yahoo!で「MAZZEL」を検索',
         shortTitle: 'Yahoo!検索',
         text: 'ファンダム特別賞対策。「調べる」行動もポイント化の対象。',
@@ -897,11 +1113,12 @@ href: 'https://music.line.me/webapp/artist/mi000000001d0ab520/tracks'
       },
       {
         id: 'oshiRequest',
+        label: 'REQUEST',
         title: '推しリクを送る',
         shortTitle: '推しリク',
-        text: 'USEN推しリクでMAZZELを応援。街中でMAZZELの曲がかかるよ！',
+        text: 'USEN推しリクでMAZZELを応援。再生・検索に加えて、リクエストも毎日の習慣に。',
         linkText: '推しリクを開く',
-href: 'https://usen.oshireq.com/song/6846512'
+        href: 'https://usen.oshireq.com/song/6846512'
       }
     ];
 
@@ -998,8 +1215,13 @@ href: 'https://usen.oshireq.com/song/6846512'
       tasks.forEach(task => {
         const row = document.createElement('label');
         row.className = `task ${dayData[task.id] ? 'done' : ''}`;
+        row.dataset.label = task.label;
         row.innerHTML = `
-          <input type="checkbox" ${dayData[task.id] ? 'checked' : ''} data-task="${task.id}">
+          <input type="checkbox" ${dayData[task.id] ? 'checked' : ''} data-task="${task.id}" aria-label="${task.title}">
+          <div class="task-head">
+            <span class="task-label">${dayData[task.id] ? '完了' : '未完了'}</span>
+            <span class="task-seal">✓</span>
+          </div>
           <span class="task-copy">
             <strong>${task.title}</strong>
             <p>${task.text}</p>
