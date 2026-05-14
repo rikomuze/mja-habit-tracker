@@ -381,6 +381,21 @@
       line-height: 1.7;
     }
 
+    .task-update {
+      display: inline-flex;
+      width: fit-content;
+      margin: 0 0 8px;
+      border: 1px solid rgba(183,149,85,0.34);
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: rgba(255,255,255,0.58);
+      color: var(--gold);
+      font-size: 11px;
+      font-style: normal;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
     .task a {
       position: relative;
       z-index: 4;
@@ -1128,7 +1143,6 @@
     const TASKS = [
       {
         id: 'spotify',
-        label: 'VOTE',
         title: 'Spotifyで「Only You」に投票',
         shortTitle: 'Spotify投票',
         text: 'ベスト・オブ・リスナーズチョイス対策。5月20日までの最優先ハビット。',
@@ -1138,37 +1152,35 @@
       },
       {
         id: 'lineMusic',
-        label: 'PLAY',
         title: 'LINE MUSICでMAZZELを再生',
         shortTitle: 'LINE MUSIC再生',
         text: 'ファンダム特別賞対策。集計期間中の「聴く」行動を毎日の習慣に。',
-        linkText: 'LINE MUSIC',
-        href: 'https://music.line.me/search?query=MAZZEL'
+        linkText: 'MAZZELを再生する',
+        href: 'https://music.line.me/webapp/artist/mi000000001d0ab520/tracks'
       },
       {
         id: 'yahooSearch',
-        label: 'SEARCH',
         title: 'Yahoo!で「MAZZEL」を検索',
         shortTitle: 'Yahoo!検索',
-        text: 'ファンダム特別賞対策。「調べる」行動もポイント化の対象。',
+        text: 'ファンダム特別賞対策。「調べる」行動も毎日の習慣に。',
         linkText: '検索する',
         href: 'https://search.yahoo.co.jp/search?p=MAZZEL'
       },
       {
         id: 'oshiRequest',
-        label: 'REQUEST',
         title: '推しリクを送る',
         shortTitle: '推しリク',
-        text: 'USEN推しリクでMAZZELを応援。再生・検索に加えて、リクエストも毎日の習慣に。',
+        text: '毎日18:00に切り替わる推しリク。更新後に今日の分をチェック。',
         linkText: '推しリクを開く',
-        href: 'https://usen.oshireq.com/song/6846512'
+        href: 'https://usen.oshireq.com/song/6846512',
+        resetHour: 18
       }
     ];
 
     const SETUP = [
       { id: 'setupSpotify', text: 'Spotifyアプリを入れて、投票プレイリストを開ける状態にした' },
       { id: 'setupLineMusic', text: 'LINE MUSICでMAZZELを検索し、再生しやすい導線を作った' },
-      { id: 'setupOshi', text: 'LINE MUSICの「My推し」を設定した' },
+      { id: 'setupOshi', text: 'USEN推しリクのページを開ける状態にした' },
       { id: 'setupYahoo', text: 'Yahoo!検索のリンクをブックマークした' }
     ];
 
@@ -1200,13 +1212,16 @@
       return `2026-05-${pad2(day)}`;
     }
 
-    const today = getJstDate(new Date());
-    const todayParts = getJstParts(today);
-    const todayKey = keyFromDate(today);
+    const now = new Date();
+    const todayParts = getJstParts(now);
+    const todayKey = keyFromDate(now);
 
     function loadData() {
-      try { return JSON.parse(localStorage.getItem(CONFIG.storageKey)) || {}; }
-      catch { return {}; }
+      try {
+        return JSON.parse(localStorage.getItem(CONFIG.storageKey)) || {};
+      } catch (error) {
+        return {};
+      }
     }
 
     function saveData(data) {
@@ -1214,7 +1229,7 @@
     }
 
     function tasksForKey(key) {
-      return TASKS.filter(task => {
+      return TASKS.filter((task) => {
         if (!task.until) return true;
         return key <= task.until;
       });
@@ -1224,10 +1239,23 @@
       return tasksForKey(todayKey);
     }
 
+    function getTaskKey(task, date = new Date()) {
+      if (!task.resetHour) return keyFromDate(date);
+      const jst = getJstDate(date);
+      if (jst.getHours() < task.resetHour) {
+        jst.setDate(jst.getDate() - 1);
+      }
+      return keyFromDate(jst);
+    }
+
+    function isTaskDone(data, task, date = new Date()) {
+      const key = getTaskKey(task, date);
+      return Boolean(data[key] && data[key][task.id]);
+    }
+
     function daysLeft(dateString) {
       const target = new Date(dateString);
-      const now = new Date();
-      const diff = target - now;
+      const diff = target - new Date();
       return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
     }
 
@@ -1242,6 +1270,36 @@
       return 'まだ助走MUZE';
     }
 
+    function getTodayStats() {
+      const data = loadData();
+      const tasks = activeTasks();
+      const done = tasks.filter((task) => isTaskDone(data, task)).length;
+      const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
+      const streak = getStreak(data);
+      const title = getTitle(pct, streak);
+      return { data, tasks, done, pct, streak, title };
+    }
+
+    function getStreak(data) {
+      let count = 0;
+      const cursor = new Date(`${todayKey}T12:00:00+09:00`);
+
+      for (let i = 0; i < 60; i++) {
+        const key = keyFromDate(cursor);
+        const tasks = tasksForKey(key);
+        const complete = tasks.length && tasks.every((task) => {
+          const checkDate = new Date(`${key}T12:00:00+09:00`);
+          return isTaskDone(data, task, checkDate);
+        });
+
+        if (!complete) break;
+        count += 1;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+
+      return count;
+    }
+
     function renderHeader() {
       $('#todayLabel').textContent = `${todayParts.yyyy}年${Number(todayParts.mm)}月${Number(todayParts.dd)}日`;
       $('#listenerDays').textContent = daysLeft(CONFIG.listenerDeadline);
@@ -1250,35 +1308,38 @@
 
     function renderTasks() {
       const data = loadData();
-      const dayData = data[todayKey] || {};
-      const tasks = activeTasks();
       const taskList = $('#taskList');
       taskList.innerHTML = '';
 
-      tasks.forEach(task => {
+      activeTasks().forEach((task) => {
+        const done = isTaskDone(data, task);
+        const taskKey = getTaskKey(task);
         const row = document.createElement('label');
-        row.className = `task ${dayData[task.id] ? 'done' : ''}`;
-        row.dataset.label = task.label;
+        row.className = `task ${done ? 'done' : ''}`;
+
         row.innerHTML = `
-          <input type="checkbox" ${dayData[task.id] ? 'checked' : ''} data-task="${task.id}" aria-label="${task.title}">
+          <input type="checkbox" ${done ? 'checked' : ''} data-task="${task.id}" data-key="${taskKey}" aria-label="${task.title}">
           <div class="task-head">
-            <span class="task-label">${dayData[task.id] ? '完了' : '未完了'}</span>
+            <span class="task-label">${done ? '完了' : '未完了'}</span>
             <span class="task-seal">✓</span>
           </div>
           <span class="task-copy">
             <strong>${task.title}</strong>
+            ${task.resetHour ? '<em class="task-update">18:00更新</em>' : ''}
             <p>${task.text}</p>
           </span>
           <a href="${task.href}" target="_blank" rel="noopener">${task.linkText}</a>
         `;
+
         taskList.appendChild(row);
       });
 
-      taskList.querySelectorAll('input[type="checkbox"]').forEach(input => {
+      taskList.querySelectorAll('input[type="checkbox"]').forEach((input) => {
         input.addEventListener('change', () => {
           const latest = loadData();
-          latest[todayKey] = latest[todayKey] || {};
-          latest[todayKey][input.dataset.task] = input.checked;
+          const key = input.dataset.key;
+          latest[key] = latest[key] || {};
+          latest[key][input.dataset.task] = input.checked;
           saveData(latest);
           renderAllDynamic();
         });
@@ -1291,7 +1352,7 @@
       const setupList = $('#setupList');
       setupList.innerHTML = '';
 
-      SETUP.forEach(item => {
+      SETUP.forEach((item) => {
         const label = document.createElement('label');
         label.className = 'setup-item';
         label.innerHTML = `
@@ -1301,7 +1362,7 @@
         setupList.appendChild(label);
       });
 
-      setupList.querySelectorAll('input').forEach(input => {
+      setupList.querySelectorAll('input').forEach((input) => {
         input.addEventListener('change', () => {
           const latest = loadData();
           latest.setup = latest.setup || {};
@@ -1311,51 +1372,28 @@
       });
     }
 
-    function getTodayStats() {
-      const data = loadData();
-      const tasks = activeTasks();
-      const dayData = data[todayKey] || {};
-      const done = tasks.filter(task => dayData[task.id]).length;
-      const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0;
-      const streak = getStreak(data);
-      const title = getTitle(pct, streak);
-      return { data, tasks, dayData, done, pct, streak, title };
-    }
-
     function renderProgress() {
-      const { tasks, done, pct, streak, title } = getTodayStats();
-      $('#ring').style.setProperty('--pct', pct);
-      $('#pctText').textContent = `${pct}%`;
-      $('#doneCount').textContent = done;
-      $('#streakCount').textContent = streak;
-      $('#todayTitle').textContent = title;
-      $('#communityDone').textContent = `${done} / ${tasks.length}`;
-    }
-
-    function getStreak(data) {
-      let count = 0;
-      const cursor = new Date(`${todayKey}T12:00:00+09:00`);
-      for (let i = 0; i < 60; i++) {
-        const key = keyFromDate(cursor);
-        const tasksForDay = tasksForKey(key);
-        const complete = tasksForDay.length && tasksForDay.every(task => data[key] && data[key][task.id]);
-        if (!complete) break;
-        count++;
-        cursor.setDate(cursor.getDate() - 1);
-      }
-      return count;
+      const stats = getTodayStats();
+      $('#ring').style.setProperty('--pct', stats.pct);
+      $('#pctText').textContent = `${stats.pct}%`;
+      $('#doneCount').textContent = stats.done;
+      $('#streakCount').textContent = stats.streak;
+      $('#todayTitle').textContent = stats.title;
+      $('#communityDone').textContent = `${stats.done} / ${stats.tasks.length}`;
     }
 
     function renderReportCard() {
-      const { tasks, dayData, pct, title } = getTodayStats();
+      const stats = getTodayStats();
       $('#reportDate').textContent = `${todayParts.yyyy}.${todayParts.mm}.${todayParts.dd}`;
-      $('#reportPercent').textContent = `${pct}%`;
-      $('#reportTitle').textContent = title;
-      $('#reportList').innerHTML = tasks.map(task => {
-        const done = dayData[task.id];
+      $('#reportPercent').textContent = `${stats.pct}%`;
+      $('#reportTitle').textContent = stats.title;
+
+      $('#reportList').innerHTML = stats.tasks.map((task) => {
+        const done = isTaskDone(stats.data, task);
         return `<li><span>${task.shortTitle}</span><span>${done ? '✓' : '—'}</span></li>`;
       }).join('');
-      $('#reportMessage').textContent = pct === 100
+
+      $('#reportMessage').textContent = stats.pct === 100
         ? '本日フル達成。これはもうMJA戦闘民族MUZE。'
         : '1個できたら、それはもう今日の積み上げ。';
     }
@@ -1367,12 +1405,13 @@
 
       for (let day = 1; day <= 31; day++) {
         const key = keyForMay(day);
-        const tasksForDay = tasksForKey(key);
-        const doneCount = tasksForDay.filter(task => data[key] && data[key][task.id]).length;
-        const complete = tasksForDay.length && doneCount === tasksForDay.length;
+        const tasks = tasksForKey(key);
+        const checkDate = new Date(`${key}T12:00:00+09:00`);
+        const doneCount = tasks.filter((task) => isTaskDone(data, task, checkDate)).length;
+        const complete = tasks.length && doneCount === tasks.length;
         const div = document.createElement('div');
         div.className = `day ${complete ? 'complete' : ''} ${key === todayKey ? 'today' : ''}`;
-        div.innerHTML = `<b>${day}</b><div class="dots">${tasksForDay.map((_, i) => `<span class="dot ${i < doneCount ? 'on' : ''}"></span>`).join('')}</div>`;
+        div.innerHTML = `<b>${day}</b><div class="dots">${tasks.map((_, i) => `<span class="dot ${i < doneCount ? 'on' : ''}"></span>`).join('')}</div>`;
         calendar.appendChild(div);
       }
     }
@@ -1384,25 +1423,25 @@
     }
 
     function reportText() {
-      const { tasks, dayData, pct, title } = getTodayStats();
+      const stats = getTodayStats();
       const lineBreak = String.fromCharCode(10);
-      const rows = tasks.map(task => `${dayData[task.id] ? '✓' : '□'} ${task.shortTitle}`).join(lineBreak);
+      const rows = stats.tasks.map((task) => `${isTaskDone(stats.data, task) ? '✓' : '□'} ${task.shortTitle}`).join(lineBreak);
 
       return [
         '今日のMJAハビット',
         rows,
         '',
-        `達成度：${pct}%`,
-        `今日の称号：${title}`,
+        `達成度：${stats.pct}%`,
+        `今日の称号：${stats.title}`,
         '',
-        '1個できたら、それはもう今日の積み上げ。',
+        stats.pct === 100 ? '本日フル達成。これはもうMJA戦闘民族MUZE。' : '1個できたら、それはもう今日の積み上げ。',
         '',
         '#MAZZEL #MUZE #SpotifyでMAJ投票 #LINEMUSICでMAJ推し応援 #推しリク'
       ].join(lineBreak);
     }
 
     function saveReportImage() {
-      const { tasks, dayData, pct, title } = getTodayStats();
+      const stats = getTodayStats();
       const canvas = document.createElement('canvas');
       const scale = 2;
       const width = 1080;
@@ -1435,9 +1474,7 @@
 
       ctx.fillStyle = '#b79555';
       ctx.font = '700 30px sans-serif';
-      ctx.letterSpacing = '3px';
       ctx.fillText('MJA HABIT REPORT', 120, 170);
-
       ctx.fillStyle = '#716677';
       ctx.font = '700 28px sans-serif';
       ctx.fillText(`${todayParts.yyyy}.${todayParts.mm}.${todayParts.dd}`, 760, 170);
@@ -1454,34 +1491,33 @@
       ctx.stroke();
       ctx.fillStyle = '#76609a';
       ctx.font = '800 42px sans-serif';
-      ctx.fillText(title, 170, 398);
+      ctx.fillText(stats.title, 170, 398);
 
       ctx.fillStyle = '#28212b';
       ctx.font = '900 92px sans-serif';
-      ctx.fillText(`${pct}%`, 120, 560);
+      ctx.fillText(`${stats.pct}%`, 120, 560);
       ctx.fillStyle = '#716677';
       ctx.font = '400 32px sans-serif';
       ctx.fillText('complete', 335, 555);
 
       let y = 670;
-      tasks.forEach(task => {
+      stats.tasks.forEach((task) => {
+        const done = isTaskDone(stats.data, task);
         ctx.fillStyle = 'rgba(255,255,255,0.62)';
         roundRect(ctx, 120, y - 48, 840, 82, 24);
         ctx.fill();
         ctx.fillStyle = '#28212b';
         ctx.font = '700 34px sans-serif';
         ctx.fillText(task.shortTitle, 160, y + 4);
-        ctx.fillStyle = dayData[task.id] ? '#76609a' : '#b8aebb';
+        ctx.fillStyle = done ? '#76609a' : '#b8aebb';
         ctx.font = '900 42px sans-serif';
-        ctx.fillText(dayData[task.id] ? '✓' : '—', 875, y + 5);
+        ctx.fillText(done ? '✓' : '—', 875, y + 5);
         y += 104;
       });
 
       ctx.fillStyle = '#716677';
       ctx.font = '400 30px sans-serif';
-      wrapText(ctx, pct === 100
-        ? '本日フル達成。これはもうMJA戦闘民族MUZE。'
-        : '1個できたら、それはもう今日の積み上げ。', 120, 1130, 820, 46);
+      wrapText(ctx, stats.pct === 100 ? '本日フル達成。これはもうMJA戦闘民族MUZE。' : '1個できたら、それはもう今日の積み上げ。', 120, 1130, 820, 46);
 
       ctx.fillStyle = 'rgba(40,33,43,0.07)';
       ctx.font = '900 74px sans-serif';
@@ -1504,26 +1540,29 @@
     }
 
     function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-      const words = text.split('');
+      const chars = text.split('');
       let line = '';
-      for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n];
-        const metrics = ctx.measureText(testLine);
-        if (metrics.width > maxWidth && n > 0) {
+      chars.forEach((char) => {
+        const testLine = line + char;
+        if (ctx.measureText(testLine).width > maxWidth && line) {
           ctx.fillText(line, x, y);
-          line = words[n];
+          line = char;
           y += lineHeight;
         } else {
           line = testLine;
         }
-      }
+      });
       ctx.fillText(line, x, y);
     }
 
     function setupButtons() {
       $('#resetToday').addEventListener('click', () => {
         const data = loadData();
-        data[todayKey] = {};
+        activeTasks().forEach((task) => {
+          const key = getTaskKey(task);
+          data[key] = data[key] || {};
+          data[key][task.id] = false;
+        });
         saveData(data);
         renderAllDynamic();
       });
@@ -1541,15 +1580,18 @@
 
       $('#saveImage').addEventListener('click', saveReportImage);
 
-      $('#copyUrl').addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(location.href);
-          $('#copyUrl').textContent = 'コピーしました';
-          setTimeout(() => $('#copyUrl').textContent = 'URLをコピー', 1400);
-        } catch (error) {
-          alert(location.href);
-        }
-      });
+      const copyUrlButton = $('#copyUrl');
+      if (copyUrlButton) {
+        copyUrlButton.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(location.href);
+            copyUrlButton.textContent = 'コピーしました';
+            setTimeout(() => copyUrlButton.textContent = 'URLをコピー', 1400);
+          } catch (error) {
+            alert(location.href);
+          }
+        });
+      }
     }
 
     function renderAllDynamic() {
